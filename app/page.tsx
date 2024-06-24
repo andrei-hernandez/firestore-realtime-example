@@ -8,6 +8,7 @@ import useSWR from 'swr'
 export default function Home(): React.ReactNode {
   const [orders, setOrders] = useState<Partial<IOrder>[]>()
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { data } = useSWR('orders', () => {
     const ordersRef = ref(database, 'orders')
     get(ordersRef).then(snapshot => {
