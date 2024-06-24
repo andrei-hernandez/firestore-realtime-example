@@ -105,3 +105,23 @@ a {
     color-scheme: dark;
   }
 }
+
+.order-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  border-radius: 15px;
+  border: lightcyan 1px solid;
+
+  .order-details {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .order-items {
+    display: flex;
+    flex-direction: column;
+  }
+}

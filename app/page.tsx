@@ -1,88 +1,51 @@
-import Image from 'next/image'
+'use client'
 import styles from './page.module.css'
+import React, { useState } from 'react'
+import { get, ref } from '@firebase/database'
+import { database } from '@/app/lib/fireabaseConfig'
+import useSWR from 'swr'
 
-export default function Home() {
+export default function Home(): React.ReactNode {
+  const [orders, setOrders] = useState<Partial<IOrder>[]>()
+
+  const { data } = useSWR('orders', () => {
+    const ordersRef = ref(database, 'orders')
+    get(ordersRef).then(snapshot => {
+      if(snapshot.exists()) {
+        const ordersArray = Object.entries(snapshot.val()).map(([id, data]) =>  ({
+          orderId: id,
+          ...data as object
+        } as unknown as IOrder))
+        setOrders(ordersArray)
+        return ordersArray
+      } else {
+        console.warn('This snapshot does not have data')
+      }
+    }).catch(error => {
+      console.error(error)
+    })
+  }, { refreshInterval: 1000 })
+
   return (
     <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer">
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer">
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer">
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer">
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer">
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+      <h1>Fetch data from Realtime DB:</h1>
+      {orders?.map((order: Partial<IOrder>, index: React.Key | null | undefined) =>
+        <div key={index} className="order-card">
+          <div className="order-details">
+            <h3>Order Details</h3>
+            <span>ID: {order.orderId}</span>
+            <span>Status: {order.status}</span>
+            <span>Total price: {order.totalPrice}</span>
+            <span>User ID: {order.userId}</span>
+          </div>
+          <div className="order-items">
+            <h3>Order Items</h3>
+            {order?.items?.map((item: IOrderItems) =>
+              <span key={item.productId}>
+                Product ID: {item.productId} | Quantity: {item.quantity}
+              </span>)}
+          </div>
+        </div>)}
     </main>
   )
 }
